@@ -1,5 +1,7 @@
-﻿using GeodesyApp;
+﻿using ClosedXML.Excel;
+using GeodesyApp;
 using System;
+using System.IO;
 using System.Globalization;
 using System.Net.NetworkInformation;
 
@@ -177,19 +179,19 @@ while(true)
     }
     else if (choise == "5")
     {
-        //Получаем все схемы из базы
+        // 1. Получаем все схемы
         List<Scheme> schemes = dbHelper.GetAllSchemes();
 
-        //Формируем путь к файлу на Рабочем столе
+        // 2. Формируем путь
         string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         string filePath = Path.Combine(desktopPath, "РеестрСхем.xlsx");
 
-        //Создаём экспортёр и вызываем метод
+        // 3. Создаём workbook
         ExcelExporter exporter = new ExcelExporter();
-        exporter.ExportToExcel(schemes, filePath);
+        XLWorkbook workbook = exporter.CreateExcelWorkbook(schemes);
 
-        //Показываем результат
-        Console.WriteLine($"Файл сохранён: {filePath}");
+        // 4. Сохраняем с проверками
+        exporter.SaveWorkbook(workbook, filePath);
     }
     else if(choise == "6")
     {
