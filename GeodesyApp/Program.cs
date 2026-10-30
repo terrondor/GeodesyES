@@ -29,10 +29,12 @@ static string ReadString(string prompt)
 
 static void PrintScheme(List<Scheme> schemes)
 {
-
     foreach(Scheme s in schemes)
     {
-        Console.WriteLine($"ID: {s.Id} | Название: {s.Name} | Вид: {s.View} | Объем: {s.Volume} | Статус: {s.Status}");
+        // Форматируем объём: если NULL — показываем прочерк
+        string volumeText = s.Volume.HasValue ? s.Volume.Value.ToString() : "—";
+
+        Console.WriteLine($"ID: {s.Id} | Название: {s.Name} | Оси: {s.Axes} | Отметка: {s.Mark} | Обьём: {volumeText} | Статус: {s.Status}");
     }
 }
 
@@ -81,17 +83,35 @@ while(true)
         List<Scheme> schemes = dbHelper.GetAllSchemes();
         PrintScheme(schemes);
     }
-    else if (choise == "2")
+    else if(choise == "2")
     {
         string name = ReadString("Введите название схемы: ");
-        string view = ReadString("Введите Вид схемы: ");
-        
-        decimal volume = ReadDecimal("Введите объём схемы: ");
-        string status = ReadString("Введите cтатус схемы: ");
+        string axes = ReadString("Введите оси (например, 2-5/Д-Ж): ");
+        string mark = ReadString("Введите отметку (например, -1.700 или -1.700, -2.800): ");
+
+        // Объём — опциональный
+        decimal? volume = null;
+        Console.Write("Введите объём (или нажмите Enter для пропуска): ");
+        string volumeInput = Console.ReadLine()!;
+
+        if(!string.IsNullOrEmpty(volumeInput))
+        {
+            if(decimal.TryParse(volumeInput, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal vol))
+            {
+                volume = vol;
+            }
+            else
+            {
+                Console.WriteLine("Неверный формат числа. Объём не будет сохранён.");
+            }
+        }
+
+        string status = ReadString("Введите статус схемы: ");
 
         Scheme newScheme = new Scheme();
         newScheme.Name = name;
-        newScheme.View = view;
+        newScheme.Axes = axes;
+        newScheme.Mark = mark;
         newScheme.Volume = volume;
         newScheme.Status = status;
 

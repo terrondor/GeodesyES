@@ -29,8 +29,19 @@ namespace GeodesyApp
                     Scheme scheme = new Scheme();
                     scheme.Id = (int) reader["id"];
                     scheme.Name = reader["Название"].ToString()!;
-                    scheme.View = reader["Вид"].ToString()!;
-                    scheme.Volume = (decimal) reader["Обьем"];
+                    scheme.Axes = reader["Оси"].ToString()!;
+                    scheme.Mark = reader["Отметка"].ToString()!;
+
+                    // Обрабатываем NULL для объёма
+                    if(reader["Объем"] == DBNull.Value)
+                    {
+                        scheme.Volume = null;
+                    }
+                    else
+                    {
+                        scheme.Volume = (decimal) reader["Объем"];
+                    }
+
                     scheme.Status = reader["Статус"].ToString()!;
 
                     schemes.Add(scheme);
@@ -41,8 +52,9 @@ namespace GeodesyApp
 
         public bool AddScheme(Scheme scheme)
         {
-            string query = @"INSERT INTO Register (Название, Вид, Обьем, Статус) 
-                 VALUES (@name, @view, @volume, @status)";
+            string query = @"INSERT INTO Register (Название, Оси, Отметка, Объем, Статус)
+                     VALUES (@name, @axes, @mark, @volume, @status)";
+
             try
             {
                 using(SqlConnection connection = new SqlConnection(_connectionString))
@@ -51,23 +63,30 @@ namespace GeodesyApp
                     SqlCommand cmd = new SqlCommand(query, connection);
 
                     cmd.Parameters.AddWithValue("@name", scheme.Name);
-                    cmd.Parameters.AddWithValue("@view", scheme.View);
-                    cmd.Parameters.AddWithValue("@volume", scheme.Volume);
+                    cmd.Parameters.AddWithValue("@axes", scheme.Axes);
+                    cmd.Parameters.AddWithValue("@mark", scheme.Mark);
+
+                    // Если объём NULL, передаём DBNull.Value
+                    if(scheme.Volume.HasValue)
+                    {
+                        cmd.Parameters.AddWithValue("@volume", scheme.Volume.Value);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@volume", DBNull.Value);
+                    }
+
                     cmd.Parameters.AddWithValue("@status", scheme.Status);
 
                     int result = cmd.ExecuteNonQuery();
-
                     return result > 0;
                 }
-
-
             }
-            catch(Exception e)
+            catch(Exception ex)
             {
-                Console.WriteLine($"Ошибка при обновлении: {e.Message}");
+                Console.WriteLine($"Ошибка при добавлении: {ex.Message}");
                 return false;
             }
-
         }
 
         public bool UpdateStatus(int id, string newStatus)

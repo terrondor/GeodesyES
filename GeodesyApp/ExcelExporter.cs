@@ -10,30 +10,40 @@ namespace GeodesyApp
     {
         public void ExportToExcel(List<Scheme> schemes, string filePath)
         {
-            //Создаём workbook(всю книгу)
             using(var workbook = new XLWorkbook())
             {
-                //Добавляем лист
                 var worksheet = workbook.Worksheets.Add("Реестр схем");
 
-                //Заголовки (первая строка)
+                // Заголовки (первая строка)
                 worksheet.Cell(1, 1).Value = "ID";
                 worksheet.Cell(1, 2).Value = "Название";
-                worksheet.Cell(1, 3).Value = "Вид";
-                worksheet.Cell(1, 4).Value = "Обьем";
-                worksheet.Cell(1, 5).Value = "Статус";
+                worksheet.Cell(1, 3).Value = "Оси";
+                worksheet.Cell(1, 4).Value = "Отметка";
+                worksheet.Cell(1, 5).Value = "Объём, м³";
+                worksheet.Cell(1, 6).Value = "Статус";
 
-                //Данные (начиная со 2-й строки)
+                // Данные (начиная со 2-й строки)
                 int row = 2;
                 foreach(var scheme in schemes)
                 {
                     worksheet.Cell(row, 1).Value = scheme.Id;
                     worksheet.Cell(row, 2).Value = scheme.Name;
-                    worksheet.Cell(row, 3).Value = scheme.View;
-                    worksheet.Cell(row, 4).Value = scheme.Volume;
-                    worksheet.Cell(row, 5).Value = scheme.Status;
+                    worksheet.Cell(row, 3).Value = scheme.Axes;
+                    worksheet.Cell(row, 4).Value = scheme.Mark;
 
-                    //Красим только ячейку статуса
+                    // Объём может быть NULL
+                    if(scheme.Volume.HasValue)
+                    {
+                        worksheet.Cell(row, 5).Value = scheme.Volume.Value;
+                    }
+                    else
+                    {
+                        worksheet.Cell(row, 5).Value = "";  // пустая ячейка
+                    }
+
+                    worksheet.Cell(row, 6).Value = scheme.Status;
+
+                    // Цвет статуса
                     string status = scheme.Status;
                     XLColor color;
 
@@ -46,13 +56,13 @@ namespace GeodesyApp
                     else
                         color = XLColor.White;
 
-                    worksheet.Cell(row, 5).Style.Fill.BackgroundColor = color;
+                    worksheet.Cell(row, 6).Style.Fill.BackgroundColor = color;
 
                     row++;
                 }
 
-                // Форматируем заголовки (жирные, серый фон, по центру)
-                for(int col = 1; col <= 5; col++)
+                // Форматирование заголовков
+                for(int col = 1; col <= 6; col++)
                 {
                     var headerCell = worksheet.Cell(1, col);
                     headerCell.Style.Font.Bold = true;
@@ -60,18 +70,17 @@ namespace GeodesyApp
                     headerCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 }
 
-                // Границы для всего диапазона (заголовки + данные)
-                var dataRange = worksheet.Range(1, 1, row - 1, 5);
+                // Границы
+                var dataRange = worksheet.Range(1, 1, row - 1, 6);
                 dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
-                // Автоширина колонок
-                worksheet.Columns(1, 5).AdjustToContents();
+                // Автоширина
+                worksheet.Columns(1, 6).AdjustToContents();
 
-                // Сохраняем файл
+                // Сохранение
                 workbook.SaveAs(filePath);
             }
-
         }
         private void ApplyColorCoding(IXLWorksheet worksheet, int totalRows)
         {

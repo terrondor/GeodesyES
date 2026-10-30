@@ -8,8 +8,9 @@ namespace GeodesyApp
     {
         public int Id { get; set; }
         public string Name { get; set; } = "";
-        public string View { get; set; } = "";
-        public decimal Volume { get; set; }
+        public string Axes { get; set; } = "";        // Оси (новое поле)
+        public string Mark { get; set; } = "";        // Отметка (теперь строка!)
+        public decimal? Volume { get; set; }          // Объём (nullable — может быть NULL)
         public string Status { get; set; } = "";
     }
 }
