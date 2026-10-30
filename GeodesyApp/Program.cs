@@ -14,7 +14,8 @@ static void PrintMenu()
     Console.WriteLine("2. Добавить новую схему");
     Console.WriteLine("3. Изменить статус схемы");
     Console.WriteLine("4. Удалить схему");
-    Console.WriteLine("5. Выход");
+    Console.WriteLine("5. Выгрузить в Excel");
+    Console.WriteLine("6. Выход");
     Console.Write("Выберите действие: ");
 }
 
@@ -154,7 +155,23 @@ while(true)
             Console.WriteLine("Ошибка при удалении схемы.");
         }
     }
-    else if(choise == "5")
+    else if (choise == "5")
+    {
+        //Получаем все схемы из базы
+        List<Scheme> schemes = dbHelper.GetAllSchemes();
+
+        //Формируем путь к файлу на Рабочем столе
+        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string filePath = Path.Combine(desktopPath, "РеестрСхем.xlsx");
+
+        //Создаём экспортёр и вызываем метод
+        ExcelExporter exporter = new ExcelExporter();
+        exporter.ExportToExcel(schemes, filePath);
+
+        //Показываем результат
+        Console.WriteLine($"Файл сохранён: {filePath}");
+    }
+    else if(choise == "6")
     {
         break;
     }
